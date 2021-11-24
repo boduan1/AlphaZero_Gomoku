@@ -2,8 +2,6 @@
 """
 An implementation of the policyValueNet in PyTorch
 Tested in PyTorch 0.2.0 and 0.3.0
-
-@author: Junxiao Song
 """
 
 import torch
@@ -28,7 +26,7 @@ class Net(nn.Module):
         self.board_width = board_width
         self.board_height = board_height
         # common layers
-        self.conv1 = nn.Conv2d(4, 32, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         # action policy layers
@@ -60,7 +58,7 @@ class Net(nn.Module):
 class PolicyValueNet():
     """policy-value network """
     def __init__(self, board_width, board_height,
-                 model_file=None, use_gpu=False):
+                 model_file=None, use_gpu=0):
         self.use_gpu = use_gpu
         self.board_width = board_width
         self.board_height = board_height
@@ -101,7 +99,7 @@ class PolicyValueNet():
         """
         legal_positions = board.availables
         current_state = np.ascontiguousarray(board.current_state().reshape(
-                -1, 4, self.board_width, self.board_height))
+                -1, 3, self.board_width, self.board_height))
         if self.use_gpu:
             log_act_probs, value = self.policy_value_net(
                     Variable(torch.from_numpy(current_state)).cuda().float())
@@ -145,7 +143,7 @@ class PolicyValueNet():
         entropy = -torch.mean(
                 torch.sum(torch.exp(log_act_probs) * log_act_probs, 1)
                 )
-        return loss.data[0], entropy.data[0]
+        return loss.data.item(), entropy.data.item()
         #for pytorch version >= 0.5 please use the following line instead.
         #return loss.item(), entropy.item()
 

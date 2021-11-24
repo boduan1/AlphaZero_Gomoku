@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Junxiao Song
-"""
-
 from __future__ import print_function
 import numpy as np
 
@@ -58,7 +53,7 @@ class Board(object):
         state shape: 4*width*height
         """
 
-        square_state = np.zeros((4, self.width, self.height))
+        square_state = np.zeros((3, self.width, self.height))
         if self.states:
             moves, players = np.array(list(zip(*self.states.items())))
             move_curr = moves[players == self.current_player]
@@ -70,8 +65,6 @@ class Board(object):
             # indicate the last move location
             square_state[2][self.last_move // self.width,
                             self.last_move % self.height] = 1.0
-        if len(self.states) % 2 == 0:
-            square_state[3][:, :] = 1.0  # indicate the colour to play
         return square_state[:, ::-1, :]
 
     def do_move(self, move):
@@ -115,6 +108,29 @@ class Board(object):
                 return True, player
 
         return False, -1
+
+    """
+    def has_a_winner(self):
+        width = self.width
+        height = self.height
+        states = self.states
+        n = self.n_in_row
+
+        moved = list(set(range(width * height)) - set(self.availables))
+        if len(moved) < self.n_in_row *2-1:
+            return False, -1
+
+        for m in moved:
+        h = m // width
+        w = m % width
+        player = states[m]
+
+        if (w in range(n - 1, width) and h in range(height - n + 1) and
+            len(set(states.get(i, -1) for i in range(m, m + n * (width - 1), width - 1))) == 1):
+            return True, player
+
+        return False, -1
+    """
 
     def game_end(self):
         """Check whether the game is ended or not"""
@@ -187,17 +203,27 @@ class Game(object):
                         print("Game end. Tie")
                 return winner
 
-    def start_self_play(self, player, is_shown=0, temp=1e-3):
+    def start_self_play(self, player1, player2, is_shown=0, temp=1e-3):
         """ start a self-play game using a MCTS player, reuse the search tree,
         and store the self-play data: (state, mcts_probs, z) for training
         """
         self.board.init_board()
         p1, p2 = self.board.players
+        players = [player1,player2]
         states, mcts_probs, current_players = [], [], []
+        round = 0
+        id = 0
         while True:
-            move, move_probs = player.get_action(self.board,
-                                                 temp=temp,
-                                                 return_prob=1)
+            #print('new round ' + str(round) + ' player ' + str(id) )
+            round += 1
+            player = players[id]
+            move, move_probs = player.get_action(self.board,temp=temp,return_prob=1)
+            id = 1-id
+            players[id].mcts.update_with_move(move)
+
+            #print(move,move_probs)  
+            #print(self.board.availables)        
+                                       
             # store the data
             states.append(self.board.current_state())
             mcts_probs.append(move_probs)

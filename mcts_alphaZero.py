@@ -3,7 +3,6 @@
 Monte Carlo Tree Search in AlphaGo Zero style, which uses a policy-value
 network to guide the tree search and evaluate the leaf nodes
 
-@author: Junxiao Song
 """
 
 import numpy as np
@@ -114,6 +113,8 @@ class MCTS(object):
                 break
             # Greedily select next move.
             action, node = node.select(self._c_puct)
+            #print(action)
+            #print(state.availables)
             state.do_move(action)
 
         # Evaluate the leaf using a network which outputs a list of
