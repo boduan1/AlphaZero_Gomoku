@@ -60,11 +60,11 @@ class Board(object):
             move_oppo = moves[players != self.current_player]
             square_state[0][move_curr // self.width,
                             move_curr % self.height] = 1.0
-            square_state[1][move_oppo // self.width,
-                            move_oppo % self.height] = 1.0
+            square_state[0][move_oppo // self.width,
+                            move_oppo % self.height] = -1.0
             # indicate the last move location
-            #square_state[2][self.last_move // self.width,
-            #                self.last_move % self.height] = 1.0
+            square_state[1][self.last_move // self.width,
+                            self.last_move % self.height] = 1.0
         return square_state[:, ::-1, :]
 
     def do_move(self, move):
