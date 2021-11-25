@@ -26,7 +26,7 @@ class Net(nn.Module):
         self.board_width = board_width
         self.board_height = board_height
         # common layers
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         # action policy layers
@@ -99,7 +99,7 @@ class PolicyValueNet():
         """
         legal_positions = board.availables
         current_state = np.ascontiguousarray(board.current_state().reshape(
-                -1, 3, self.board_width, self.board_height))
+                -1, 2, self.board_width, self.board_height))
         if self.use_gpu:
             log_act_probs, value = self.policy_value_net(
                     Variable(torch.from_numpy(current_state)).cuda().float())
