@@ -30,7 +30,8 @@ class TrainPipeline():
         self.c_puct = 5
         self.buffer_size = 10000
         self.batch_size = 128 # mini-batch size for training
-        self.data_buffer = deque(maxlen=self.buffer_size)
+        self.data_buffer_black = deque(maxlen=self.buffer_size)
+        self.data_buffer_white = deque(maxlen=self.buffer_size)
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
@@ -96,13 +97,25 @@ class TrainPipeline():
                                                           temp=self.temp)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
+            play_data_black = []
+            play_data_white = []
+            for i in range(len(play_data)):
+                if(i%2==0):
+                    play_data_black.append(play_data[i])
+                else:
+                    play_data_white.append(play_data[i])
             # augment the data
-            play_data = self.get_equi_data(play_data)
-            self.data_buffer.extend(play_data)
+            play_data_black = self.get_equi_data(play_data_black)
+            play_data_white = self.get_equi_data(play_data_white)
+            self.data_buffer_black.extend(play_data_black)
+            self.data_buffer_white.extend(play_data_white)
 
     def policy_update(self,id):
         """update the policy-value net"""
-        mini_batch = random.sample(self.data_buffer, self.batch_size)
+        if id == 0:
+            mini_batch = random.sample(self.data_buffer_black, self.batch_size)
+        else:
+            mini_batch = random.sample(self.data_buffer_white, self.batch_size)
         state_batch = [data[0] for data in mini_batch]
         mcts_probs_batch = [data[1] for data in mini_batch]
         winner_batch = [data[2] for data in mini_batch]
@@ -193,7 +206,8 @@ class TrainPipeline():
                 self.collect_selfplay_data(self.play_batch_size)
                 print("batch i:{}, episode_len:{}".format(
                         i+1, self.episode_len))
-                if len(self.data_buffer) > self.batch_size:
+                #print('buffer size: ',len(self.data_buffer_black),' ',len(self.data_buffer_white))
+                if len(self.data_buffer_white) > self.batch_size:
                     loss, entropy = self.policy_update(id=0)
                     loss, entropy = self.policy_update(id=1)
 
